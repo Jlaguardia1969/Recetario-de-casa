@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mi recetario</title>
+<style>
+:root{--bg:#f1f4ee;--card:#fbfcf9;--fg:#1c2b25;--mut:#5f6f67;--bd:#d9e0d4;--ac:#1f5f5b;--acfg:#fff;--ok:#1f6a45;--okbg:#dcefe3;--warn:#8a5a00;--warnbg:#f8ecd0;--bad:#a63a2e;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#131a17;--card:#1b2420;--fg:#e8efe9;--mut:#9aaba1;--bd:#2b3832;--ac:#5fb8ae;--acfg:#0d1512;--ok:#7fd3a1;--okbg:#1d3a2b;--warn:#f0c167;--warnbg:#3a2f14;--bad:#f08a7c;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#131a17;--card:#1b2420;--fg:#e8efe9;--mut:#9aaba1;--bd:#2b3832;--ac:#5fb8ae;--acfg:#0d1512;--ok:#7fd3a1;--okbg:#1d3a2b;--warn:#f0c167;--warnbg:#3a2f14;--bad:#f08a7c;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;max-width:640px;margin:0 auto}
+main{padding:16px 16px 96px}
+h1,h2,h3{font-family:Georgia,"Times New Roman",serif;font-weight:700;line-height:1.2;margin:0}
+h2{font-size:26px;margin:8px 0 12px}
+h3{font-size:18px;margin:22px 0 8px}
+h3.let{font-size:15px;color:var(--ac);margin:18px 0 6px;border-bottom:1px solid var(--bd);padding-bottom:2px}
+.mut{color:var(--mut);font-size:14px}
+button,input,textarea{font:inherit;color:inherit}
+input,textarea{width:100%;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;margin:4px 0 12px}
+label{display:block;font-size:14px;color:var(--mut);margin-top:6px}
+textarea{resize:vertical}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.card{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:13px 14px;margin:6px 0;cursor:pointer}
+.tag{font-size:12px;border-radius:99px;padding:2px 9px;white-space:nowrap}
+.tag.ok{background:var(--okbg);color:var(--ok)}
+.tag.w{background:var(--warnbg);color:var(--warn)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--bd);border-radius:99px;padding:6px 12px;font-size:14px}
+button.chip{cursor:pointer}
+.chip.on{background:var(--ac);color:var(--acfg);border-color:var(--ac)}
+.chip button{background:none;border:0;cursor:pointer;font-size:18px;line-height:1;padding:0 0 0 2px;color:var(--mut)}
+.btn{background:var(--card);border:1px solid var(--ac);color:var(--ac);border-radius:10px;padding:10px 16px;cursor:pointer;margin:4px 8px 4px 0}
+.btn.pri{background:var(--ac);color:var(--acfg)}
+.btn.danger{border-color:var(--bad);color:var(--bad)}
+.link{background:none;border:0;color:var(--ac);padding:4px 0;cursor:pointer;font-size:15px}
+.row{display:flex;align-items:center;gap:10px;margin:8px 0}
+.row input{margin:0;flex:1}
+.sq{width:36px;height:36px;border-radius:10px;border:1px solid var(--bd);background:var(--card);font-size:20px;cursor:pointer}
+.ing{list-style:none;padding:0;margin:0}
+.ing li{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--bd)}
+.ing i{font-style:normal;width:18px;font-weight:700}
+.ing .y i{color:var(--ok)}
+.ing .n i{color:var(--bad)}
+ol{padding-left:22px}
+ol li{margin:8px 0}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--bd);padding-bottom:env(safe-area-inset-bottom,0px);max-width:640px;margin:0 auto}
+nav button{flex:1;background:none;border:0;padding:14px 4px;font-size:15px;color:var(--mut);cursor:pointer}
+nav button.on{color:var(--ac);font-weight:700;box-shadow:inset 0 3px 0 var(--ac)}
+details{margin-top:24px}
+summary{cursor:pointer;color:var(--mut)}
+</style></head>
+<body>
+<main id="app"></main>
+<nav id="tabs"><button data-a="tab" data-v="recetas">Recetas</button><button data-a="tab" data-v="despensa">Despensa</button><button data-a="tab" data-v="add">Añadir</button></nav>
+<script>
+const KEY='recetario:v1';let mem=null;
+const seed={pantry:[],recipes:[{id:'r1',name:'Lentejas con arroz',servings:4,
+ings:['250 g lentejas pardinas','150 g arroz','3 cucharadas aceite de oliva','1 cebolla, picada','2 dientes de ajo, picados','1 pimiento verde, picado','1 zanahoria, en rodajas','150 g tomate triturado','1 cucharadita pimentón dulce','½ cucharadita comino molido','1 hoja de laurel','1,2 l agua','1,5 cucharaditas sal'],
+steps:['Enjuaga las lentejas y retira las piedrecitas. No necesitan remojo.','Calienta el aceite y sofríe cebolla, pimiento y zanahoria 8 minutos; añade el ajo 1 minuto más.','Añade el tomate, el pimentón y el comino; remueve 1 minuto.','Incorpora las lentejas, el laurel y el agua. Hierve, baja el fuego y cuece tapado 25 minutos.','Añade el arroz y la sal; cuece 15 minutos más a fuego suave, con líquido suficiente.','Retira el laurel y deja reposar 5 minutos tapado.']}]};
+function load(){try{const s=localStorage.getItem(KEY);if(s)return JSON.parse(s)}catch(e){}return mem}
+function save(){mem=state;try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+let state=load()||seed;
+const emptyDraft=()=>({name:'',serv:4,ings:'',steps:'',paste:''});
+const ui={tab:'recetas',q:'',f:'all',open:null,k:null,edit:null,cd:null,draft:emptyDraft()};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const norm=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+const stem=s=>s.split(' ').map(w=>w.length>3?w.replace(/s$/,''):w).join(' ');
+const UN=/^(kg|g|gr|gramos?|ml|l|litros?|cl|cucharad(?:a|ita)s?|cucharas?|cdas?|cdtas?|tazas?|vasos?|pizcas?|punados?|dientes?|lonchas?|rodajas?|latas?|botes?|paquetes?|hojas?|ramas?|tbsp|tsp|cup)\b\.?\s*/;
+function core(l){let s=norm(l).replace(/^[\d.,\/\s½¼¾⅓⅔-]+/,'').replace(UN,'');for(let i=0;i<2;i++)s=s.replace(/^(de|del|la|el|los|las|un|una|unos|unas)\s+/,'');s=s.split(/[,(]/)[0].replace(/\s+al gusto$/,'');return stem(s.trim())}
+function has(l){const c=core(l);if(!c||c==='agua')return true;const cw=c.split(' ');return state.pantry.some(p=>{p=stem(norm(p));if(!p)return false;const pw=p.split(' ');return pw.every(w=>cw.includes(w))||cw.every(w=>pw.includes(w))})}
+const FR={'½':.5,'¼':.25,'¾':.75,'⅓':.33,'⅔':.67};
+function fmt(v){if(v>=50)v=Math.round(v/5)*5;else if(v>=10)v=Math.round(v);else v=Math.round(v*4)/4;const w=Math.floor(v),g={0.25:'¼',0.5:'½',0.75:'¾'}[v-w];return g?(w?w+' '+g:g):String(v).replace('.',',')}
+function scale(l,k){const m=l.match(/^\s*(\d+(?:[.,]\d+)?|\d+\/\d+|[½¼¾⅓⅔])(.*)$/);if(!m||k===1)return l;const n=m[1];const v=FR[n]??(n.includes('/')?n.split('/')[0]/n.split('/')[1]:parseFloat(n.replace(',','.')));return fmt(v*k)+m[2]}
+const ING=/^(\d+([.,]\d+)?|\d+\/\d+|[½¼¾])\s*[a-zA-ZñÑáéíóúÁÉÍÓÚ]/;
+function parse(t){
+ const L=t.split(/\r?\n/).map(l=>l.replace(/^\[?\d{1,2}\/\d{1,2}\/\d{2,4},?\s+\d{1,2}:\d{2}(?::\d{2})?\]?\s*-?\s*[^:]{1,40}:\s*/,'').replace(/[*_~]/g,'').trim()).filter(Boolean);
+ if(!L.length)return null;
+ const HI=/^\W*ingredientes\W*$/i,HS=/^\W*(preparaci[oó]n|elaboraci[oó]n|pasos|instrucciones|modo de hacer)\W*$/i;
+ const H=L.some(l=>HI.test(l)||HS.test(l));let mode='t',name='',ings=[],steps=[];
+ const clean=l=>l.replace(/^([-•·▪]|\d+[.)])\s*/,'').trim();
+ L.forEach(l=>{
+  if(HI.test(l)){mode='i';return}
+  if(HS.test(l)){mode='s';return}
+  if(mode==='t'&&!name){name=l.replace(/^receta( de)?\s*:?\s*/i,'');return}
+  const c=clean(l);
+  if(H){if(mode==='i')ings.push(c);else if(mode==='s')steps.push(c)}
+  else (ING.test(l)||/^[-•·]/.test(l)?ings:steps).push(c)});
+ return{name,ings,steps}}
+function recipeList(){
+ let rs=state.recipes.map(r=>({r,miss:r.ings.filter(i=>!has(i)).length}));
+ const q=norm(ui.q);
+ rs=rs.filter(x=>norm(x.r.name).includes(q)&&(ui.f==='all'||(ui.f==='can'&&x.miss===0)||(ui.f==='near'&&x.miss<=2)));
+ rs.sort((a,b)=>a.r.name.localeCompare(b.r.name,'es',{sensitivity:'base'}));
+ if(!rs.length)return '<p class="mut">'+(state.recipes.length?'Ninguna receta coincide. Prueba otro filtro o apunta más cosas en tu despensa.':'Aún no hay recetas. Añade la primera en la pestaña “Añadir”.')+'</p>';
+ let h='',L='';
+ for(const{r,miss}of rs){const l=(norm(r.name)[0]||'#').toUpperCase();if(l!==L){L=l;h+='<h3 class="let">'+esc(l)+'</h3>'}
+  h+=`<button class="card" data-a="open" data-id="${r.id}"><b>${esc(r.name)}</b><span class="tag ${miss?'w':'ok'}">${miss?'Faltan '+miss:'Lo tienes todo'}</span></button>`}
+ return h}
+function list(){return `<h2>Mis recetas</h2><input id="q" type="search" placeholder="Buscar receta" value="${esc(ui.q)}"><div class="chips">${[['all','Todas'],['can','Puedo cocinar'],['near','Casi (faltan 2 o menos)']].map(([v,t])=>`<button class="chip ${ui.f===v?'on':''}" data-a="flt" data-v="${v}">${t}</button>`).join('')}</div><div id="list">${recipeList()}</div>`}
+function detail(r){const n=ui.k||r.servings,k=n/r.servings;
+ return `<button class="link" data-a="back">← Volver a recetas</button><h2>${esc(r.name)}</h2>
+<div class="row"><span>Raciones</span><button class="sq" data-a="serv" data-d="-1" aria-label="Menos raciones">−</button><b>${n}</b><button class="sq" data-a="serv" data-d="1" aria-label="Más raciones">+</button></div>
+<h3>Ingredientes</h3><ul class="ing">${r.ings.map(i=>{const y=has(i);return `<li class="${y?'y':'n'}"><i>${y?'✓':'✗'}</i><span>${esc(scale(i,k))}</span></li>`}).join('')}</ul>
+<p class="mut">✓ lo tienes en tu despensa · ✗ te falta</p>
+<h3>Preparación</h3><ol>${r.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol>
+<div class="row"><button class="btn" data-a="edit" data-id="${r.id}">Editar</button><button class="btn danger" data-a="del" data-id="${r.id}">${ui.cd===r.id?'Toca otra vez para borrar':'Borrar'}</button></div>`}
+function pantry(){const have=state.pantry.map(norm);
+ const q=['arroz','lentejas','garbanzos','cebolla','ajo','tomate','huevos','patatas','pasta','aceite','sal','pollo','zanahoria','pimiento'].filter(x=>!have.includes(x));
+ return `<h2>Mi despensa</h2><p class="mut">Apunta lo que tienes. En Recetas verás qué te falta en cada una. Puedes añadir varias cosas separadas por comas.</p>
+<div class="row"><input id="p-in" placeholder="Ej.: arroz, huevos, atún"><button class="btn pri" data-a="padd">Añadir</button></div>
+<div class="chips">${state.pantry.map((p,i)=>`<span class="chip">${esc(p)}<button data-a="pdel" data-i="${i}" aria-label="Quitar ${esc(p)}">×</button></span>`).join('')||'<span class="mut">Aún está vacía.</span>'}</div>
+<h3>Añadir rápido</h3><div class="chips">${q.map(x=>`<button class="chip" data-a="pq" data-v="${x}">+ ${x}</button>`).join('')}</div>`}
+function form(){const d=ui.draft;return `<h2>${ui.edit?'Editar receta':'Añadir receta'}</h2>
+<label>Pega aquí el texto (WhatsApp, notas…)<textarea id="f-paste" rows="4" placeholder="Copia el mensaje de WhatsApp y pégalo aquí">${esc(d.paste)}</textarea></label>
+<button class="btn" data-a="parse">Rellenar automáticamente</button>
+<label>Nombre<input id="f-name" value="${esc(d.name)}"></label>
+<label>Raciones<input id="f-serv" type="number" min="1" value="${d.serv}"></label>
+<label>Ingredientes (uno por línea, con cantidad: “200 g arroz”)<textarea id="f-ings" rows="6">${esc(d.ings)}</textarea></label>
+<label>Preparación (un paso por línea)<textarea id="f-steps" rows="6">${esc(d.steps)}</textarea></label>
+<button class="btn pri" data-a="save">Guardar receta</button><p id="msg" class="mut"></p>
+<details><summary>Copia de seguridad</summary><p class="mut">Tus datos se guardan en este navegador. Copia una copia por si cambias de móvil o borras datos.</p>
+<button class="btn" data-a="exp">Copiar copia</button><label>Restaurar: pega una copia<textarea id="f-imp" rows="3"></textarea></label><button class="btn" data-a="imp">Restaurar</button><p id="msg2" class="mut"></p></details>`}
+function R(top){document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===ui.tab));
+ const r=state.recipes.find(x=>x.id===ui.open);
+ $('#app').innerHTML=ui.tab==='recetas'?(r?detail(r):list()):ui.tab==='despensa'?pantry():form();if(top)window.scrollTo(0,0)}
+function addPantry(items){items.split(/[,\n]/).map(s=>s.trim()).filter(Boolean).forEach(x=>{if(!state.pantry.some(p=>norm(p)===norm(x)))state.pantry.push(x)});save()}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,id=b.dataset.id;
+ if(a==='tab'){ui.tab=b.dataset.v;ui.open=null;ui.cd=null;if(ui.tab==='add'){ui.edit=null;ui.draft=emptyDraft()}R(1)}
+ else if(a==='open'){ui.open=id;ui.k=null;ui.cd=null;R(1)}
+ else if(a==='back'){ui.open=null;R(1)}
+ else if(a==='flt'){ui.f=b.dataset.v;R()}
+ else if(a==='serv'){const r=state.recipes.find(x=>x.id===ui.open);ui.k=Math.max(1,(ui.k||r.servings)+ +b.dataset.d);R()}
+ else if(a==='del'){if(ui.cd===id){state.recipes=state.recipes.filter(x=>x.id!==id);save();ui.open=null;ui.cd=null;R(1)}else{ui.cd=id;R()}}
+ else if(a==='edit'){const r=state.recipes.find(x=>x.id===id);ui.edit=id;ui.draft={name:r.name,serv:r.servings,ings:r.ings.join('\n'),steps:r.steps.join('\n'),paste:''};ui.tab='add';R(1)}
+ else if(a==='padd'){addPantry($('#p-in').value);R();$('#p-in').focus()}
+ else if(a==='pq'){addPantry(b.dataset.v);R()}
+ else if(a==='pdel'){state.pantry.splice(+b.dataset.i,1);save();R()}
+ else if(a==='parse'){const t=$('#f-paste').value,p=parse(t);if(!p){$('#msg').textContent='Pega primero el texto de la receta.';return}
+  ui.draft={name:p.name||$('#f-name').value,serv:+$('#f-serv').value||4,ings:p.ings.join('\n'),steps:p.steps.join('\n'),paste:t};R();$('#msg').textContent='Revisa los datos y toca “Guardar receta”.'}
+ else if(a==='save'){const name=$('#f-name').value.trim(),ings=$('#f-ings').value.split('\n').map(s=>s.trim()).filter(Boolean),steps=$('#f-steps').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  if(!name||!ings.length){$('#msg').textContent='Falta el nombre o los ingredientes.';return}
+  const rec={id:ui.edit||'r'+Date.now(),name,servings:Math.max(1,+$('#f-serv').value||4),ings,steps};
+  const i=state.recipes.findIndex(x=>x.id===rec.id);if(i>=0)state.recipes[i]=rec;else state.recipes.push(rec);save();
+  ui.tab='recetas';ui.open=rec.id;ui.k=null;ui.edit=null;R(1)}
+ else if(a==='exp'){const m=$('#msg2');try{navigator.clipboard.writeText(JSON.stringify(state)).then(()=>m.textContent='Copia hecha. Pégala en un lugar seguro (por ejemplo, una nota).',()=>m.textContent='No se pudo copiar.')}catch(x){m.textContent='No se pudo copiar.'}}
+ else if(a==='imp'){const m=$('#msg2');try{const o=JSON.parse($('#f-imp').value);(o.recipes||[]).forEach(r=>{const i=state.recipes.findIndex(x=>x.id===r.id);if(i>=0)state.recipes[i]=r;else state.recipes.push(r)});(o.pantry||[]).forEach(p=>{if(!state.pantry.includes(p))state.pantry.push(p)});save();m.textContent='Copia restaurada.'}catch(x){m.textContent='El texto no es una copia válida.'}}
+});
+document.addEventListener('input',e=>{if(e.target.id==='q'){ui.q=e.target.value;$('#list').innerHTML=recipeList()}});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='p-in'){addPantry(e.target.value);R();$('#p-in').focus()}});
+R();
+</script></body></html>
